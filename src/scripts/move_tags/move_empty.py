@@ -20,7 +20,7 @@ from tqdm import tqdm
 from src.lib.client import new_client
 
 
-def count_notes_in_tags(client: EvernoteClient, token: str):
+def count_notes_in_tags(client: EvernoteClient, token: str, tags_df: pd.DataFrame = None):
     note_store = client.get_note_store()
     tags = note_store.listTags()
 
@@ -30,6 +30,11 @@ def count_notes_in_tags(client: EvernoteClient, token: str):
     for tag in tqdm(tags):
         # print(tag)
         # Tag(guid='681d674e-2085-41f6-ad14-d0a9aa3eb51d', name='classification', parentGuid=None, updateSequenceNum=17)
+        if tags_df is not None:
+            guid = tag.guid
+            if len(tags_df.query('guid == @guid')) != 0:
+                continue
+
         filter = NoteStore.NoteFilter()
         filter.tagGuids = [tag.guid, ]
         spec = NoteStore.NotesMetadataResultSpec()
@@ -53,6 +58,11 @@ def count_notes_in_tags(client: EvernoteClient, token: str):
     return tags_dct
 
 
+def load_tags(path_file: Path):
+    df = pd.read_csv(path_file)
+    return df
+
+
 def save_tags(tags_dct: Dict[Tag, int]):
     lst = []
 
@@ -67,9 +77,12 @@ def save_tags(tags_dct: Dict[Tag, int]):
     df.to_csv(path)
 
 
-
 if __name__ == '__main__':
     token = os.environ['EVERNOTE_PROD_DEV_TOKEN']
     client = new_client()
 
-    tags_dct = count_notes_in_tags(client, token)
+    path_csv_tags = Path('.') / 'tags_list_2021-11-22_18:45:09.csv'
+    tags_df = load_tags(path_csv_tags)
+    print()
+
+    tags_dct = count_notes_in_tags(client, token, tags_df)

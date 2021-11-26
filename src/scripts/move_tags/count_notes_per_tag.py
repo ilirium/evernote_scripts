@@ -13,7 +13,6 @@ from evernote.api.client import EvernoteClient
 from evernote.edam.notestore import NoteStore
 from evernote.edam.type.ttypes import Tag
 
-
 from tqdm import tqdm
 
 # Lib
